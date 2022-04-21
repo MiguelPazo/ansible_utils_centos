@@ -1,0 +1,6 @@
+---
+git_aliases:
+  - {command: 'status', alias: 'st'}
+  - {command: 'commit', alias: 'cm'}
+  - {command: 'branch', alias: 'br'}
+  - {command: 'checkout', alias: 'ck'}

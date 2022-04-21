@@ -1,0 +1,63 @@
+---
+- name: Install yum repositories
+  become: true
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Validate if nvm directory exists
+  stat: path="{{ nvm_path }}"
+  register: nvm_path_exists
+
+- name: Install NVM
+  become: true
+  shell: curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.1/install.sh |   NVM_DIR={{ nvm_path }} bash
+  when: nvm_path_exists.stat.exists == False
+
+- name: Config profile.d
+  template:
+    src: nvm.sh.j2
+    dest: /etc/profile.d/nvm.sh
+
+- name: Source nvm.sh
+  shell: source /etc/profile.d/nvm.sh
+
+- name: Get NVM version
+  shell: source {{ nvm_path }}/nvm.sh && nvm --version
+  register: nvm_version
+
+- debug: msg="{{ nvm_version.stdout_lines }}"
+
+- name: Install nodejs 12
+  shell: source {{ nvm_path }}/nvm.sh && nvm install {{ nodejs_version }}
+
+- name: Create symbolic link
+  file:
+    src: "/usr/local/nvm/versions/node/v{{ nodejs_version }}/bin/npm"
+    dest: "/usr/bin/npm"
+    state: link
+
+- name: Create symbolic link
+  file:
+    src: "/usr/local/nvm/versions/node/v{{ nodejs_version }}/bin/node"
+    dest: "/usr/bin/node"
+    state: link
+
+- name: Get npm version
+  become: true
+  shell: npm version
+  register: npm_version
+
+- debug: msg="{{ npm_version.stdout_lines }}"
+
+- name: Install global packages
+  become: true
+  shell: npm install {{ item }} -g
+  with_items: "{{ nodejs_npm_global_packages }}"
+
+- name: Create symbolic link for global packages
+  file:
+    src: "/usr/local/nvm/versions/node/v{{ nodejs_version }}/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+  with_items: "{{ nodejs_links }}"

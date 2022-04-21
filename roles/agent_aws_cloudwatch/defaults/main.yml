@@ -1,0 +1,5 @@
+---
+aws_region: ca-central-1
+logs_files:
+  - file: '/var/log/messages'
+    log_group: '/aws/ec2/webserver'

@@ -1,0 +1,24 @@
+---
+- name: Install pulumi
+  become: true
+  shell: curl -fsSL https://get.pulumi.com | sh
+
+#- name: Create aws directory
+#  become: true
+#  shell: mkdir ~/.aws
+#
+#- name: Copy config aws file
+#  template:
+#    src: config
+#    dest: ~/.aws/config
+#
+#- name: Copy credentials aws file
+#  template:
+#    src: credentials
+#    dest: ~/.aws/credentials
+
+- name: Insert access token
+  lineinfile:
+    path: "/etc/profile"
+    line: export PULUMI_ACCESS_TOKEN={{pulumi_token}}
+    insertafter: EOF

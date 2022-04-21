@@ -1,0 +1,45 @@
+---
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Clean
+  shell: rm -rf /opt/*
+
+- name: Check if Python3.7 has been previously installed
+  stat: path="{{ python37_uncompress_path }}"
+  register: python37_tar
+
+- name: Download Python3.7 Binaries
+  get_url: url="{{ python37_source }}" dest="{{ python37_donwload_path }}"
+  when: python37_tar.stat.exists == False
+
+#- name: Ensure a directory python37_uncompress_path exists
+#  file:
+#    path: "{{ python37_uncompress_path }}"
+#    state: directory
+#    mode: '0644'
+
+- name: Uncompress Python3.7 Binaries
+  shell: cd /opt && tar xfz {{ python37_donwload_path }}
+  when: python37_tar.stat.exists == False
+
+- name: Config binaries
+  shell: cd {{ python37_uncompress_path }} && ./configure --enable-optimizations
+  when: python37_tar.stat.exists == False
+
+- name: Install binaries
+  shell: cd {{ python37_uncompress_path }} && make altinstall
+  when: python37_tar.stat.exists == False
+
+- name: Get python version
+  shell: /usr/local/bin/python3.7 -V
+  register: python_version
+
+- debug: msg="{{ python_version.stdout_lines }}"
+
+- name: Upgrade pip
+  shell: /usr/local/bin/pip3.7 install --upgrade pip
+  when: python37_tar.stat.exists == False

@@ -1,0 +1,39 @@
+---
+- name: Downloading installer
+  shell: cd /opt && curl https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
+
+- name: Copying aws config
+  template:
+    src: awslogs.conf.j2
+    dest: /opt/awslogs.conf
+#Final path: /var/awslogs/etc/awslogs.conf
+
+- name: Installing agent
+  shell: cd /opt && python ./awslogs-agent-setup.py --region {{ aws_region }} --configfile awslogs.conf --non-interactive
+
+- name: Delete excecutable
+  become: true
+  file:
+    path: "/opt/awslogs-agent-setup.py"
+    state: absent
+
+- name: Delete initial config
+  become: true
+  file:
+    path: "/opt/awslogs.conf"
+    state: absent
+
+- name: Start awslogs
+  service:
+    name: awslogs
+    state: restarted
+
+- name: Installing agent
+  shell: chkconfig awslogs on
+
+- name: Start awslogs
+  service:
+    name: awslogs
+    state: restarted
+    enabled: yes
+

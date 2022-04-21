@@ -1,0 +1,29 @@
+---
+- src: https://github.com/geerlingguy/ansible-role-nginx
+  name: geerlingguy.nginx
+
+- src: https://github.com/geerlingguy/ansible-role-repo-epel
+  name: geerlingguy.epel
+
+- src: https://github.com/geerlingguy/ansible-role-repo-remi
+  name: geerlingguy.remi
+
+- src: https://github.com/geerlingguy/ansible-role-php-mysql
+  name: geerlingguy.php_mysql
+
+- src: https://github.com/geerlingguy/ansible-role-php
+  name: geerlingguy.php
+
+- src: https://github.com/geerlingguy/ansible-role-mysql
+  name: geerlingguy.mysql
+
+- src: https://github.com/geerlingguy/ansible-role-jenkins
+  name: geerlingguy.jenkins
+
+- src: https://github.com/geerlingguy/ansible-role-php-versions
+  name: geerlingguy.php-versions
+
+- src: https://github.com/zaxos/tomcat-ansible-role
+  name: zaxos.tomcat-ansible-role
+
+#ansible-galaxy collection install community.mongodb

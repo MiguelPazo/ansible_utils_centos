@@ -1,0 +1,98 @@
+---
+
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Add user www-data
+  user:
+    name: www-data
+    shell: /sbin/nologin
+    append: yes
+    state: present
+
+- name: Create www directory
+  file:
+    path: /var/www
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: "{{ web_directory_owner }}"
+    group: "{{ web_directory_owner }}"
+
+- name: Setting permissions for SELinux
+  shell: /usr/sbin/setsebool httpd_can_network_connect true -P
+  become: true
+
+- name: Setting permissions for SELinux with Enforcing
+  shell: chcon -Rt httpd_sys_content_t /var/www
+  become: true
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Install Development Tools
+  shell: yum groupinstall 'Development Tools' -y
+
+- name: Create sites-available directory
+  file:
+    path: /etc/httpd/sites-available
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: apache
+    group: apache
+
+- name: Create sites-enabled directory
+  file:
+    path: /etc/httpd/sites-enabled
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: apache
+    group: apache
+
+- name: Copy config file default.conf
+  template:
+    src: "httpd.conf"
+    dest: "/etc/httpd/conf/httpd.conf"
+
+- name: Copy config file {{ subdomain }}.conf
+  template:
+    src: "{{subdomains_folder}}{{ item }}.conf"
+    dest: "/etc/httpd/sites-available/{{ item }}.conf"
+  with_items: "{{ subdomains }}"
+
+- name: Enabling site {{ subdomain }}.conf
+  file:
+    src: "/etc/httpd/sites-available/{{ item }}.conf"
+    dest: "/etc/httpd/sites-enabled/{{ item }}.conf"
+    state: link
+  with_items: "{{ subdomains }}"
+
+- name: Ensure sites-available directory permissions
+  file:
+    path: /etc/httpd/sites-available
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: apache
+    group: apache
+
+- name: Ensure sites-enabled directory permissions
+  file:
+    path: /etc/httpd/sites-enabled
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: apache
+    group: apache
+
+- name: Start httpd
+  service:
+    name: httpd
+    state: restarted
+    enabled: yes

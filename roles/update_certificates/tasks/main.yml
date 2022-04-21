@@ -1,0 +1,9 @@
+---
+
+- name: Install ca-certificates
+  yum:
+    name: ca-certificates
+    state: present
+
+- name: Refresh certificates
+  shell: update-ca-trust force-enable

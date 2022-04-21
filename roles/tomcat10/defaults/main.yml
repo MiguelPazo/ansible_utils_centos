@@ -1,0 +1,6 @@
+---
+tomcat_download_uri: https://downloads.apache.org/tomcat/tomcat-10/v10.0.8/bin/apache-tomcat-10.0.8.tar.gz
+tomcat_download_path: /opt/apache-tomcat-10.0.8.tar.gz
+tomcat_uncompress_path: /opt/apache-tomcat-10.0.8
+tomcat_install_path: /etc/tomcat
+tomcat_log_path: /var/log/tomcat

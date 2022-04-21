@@ -1,0 +1,33 @@
+---
+- name: Create jenkins login user
+  user:
+    name: "jenkins"
+    state: present
+    createhome: yes
+
+- name: Set authorized key took from file
+  ansible.posix.authorized_key:
+    user: "jenkins"
+    state: present
+    key: "{{ item }}"
+  with_file:
+    - "{{ playbook_dir }}/keys/jenkins/{{ key_name }}.pem"
+
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: Add sudoers sudoers to wheel group
+  user:
+    name: "jenkins"
+    groups: wheel
+    append: yes

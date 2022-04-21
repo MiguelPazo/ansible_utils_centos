@@ -1,0 +1,112 @@
+---
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Removing directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: directories_delete
+
+- name: Copy installer files
+  copy:
+    src: "{{ playbook_dir }}/installers/nginx_1.14/{{ item.name }}"
+    dest: "/opt/{{ item.name }}"
+  with_items: "{{ installers }}"
+
+- name: Uncompres files
+  shell: cd /opt && tar xvfz {{ item.name }}
+  with_items: "{{ installers }}"
+
+- name: Upload nginx compile config
+  template:
+    src: ngx_http_header_filter_module.c.j2
+    dest: "/opt/nginx-1.14.0/src/http/ngx_http_header_filter_module.c"
+
+- name: Compiling script to remote
+  template:
+    src: compile_config.sh
+    dest: "/opt/compile_config.sh"
+    mode: 0755
+
+- name: Compiling nginx configuration
+  shell: /opt/compile_config.sh > /opt/compile_config.log
+
+- name: Compiling nginx sources
+  shell: cd /opt/nginx-1.14.0 && make > /opt/compile_sources.log
+
+- name: Installing nginx
+  shell: cd /opt/nginx-1.14.0 && make install > /opt/installing.log
+
+- name: Removing installers
+  file:
+    path: "/opt/{{ item.name }}"
+    state: absent
+  with_items: "{{ installers }}"
+
+- name: Removing directories
+  file:
+    path: "/opt/{{ item.uncompress }}"
+    state: absent
+  with_items: "{{ installers }}"
+
+- name: Add user www-data
+  user:
+    name: www-data
+    shell: /sbin/nologin
+    append: yes
+    state: present
+
+- name: Add user nginx
+  user:
+    name: nginx
+    shell: /sbin/nologin
+    append: yes
+    state: present
+
+- name: Creates directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items: "{{ directories }}"
+
+- name: Cleaning defaults files
+  shell: cd /etc/nginx && rm -rf koi-* && rm -fr *.default && rm -rf win-utf
+
+- name: Setting owner for nginx directories
+  file:
+    path: "{{ item }}"
+    owner: nginx
+    group: nginx
+    mode: 0664
+    recurse: yes
+  with_items: "{{ nginx_directories }}"
+
+- name: Setting owner for www-data directories
+  file:
+    path: "{{ item }}"
+    owner: www-data
+    group: www-data
+    mode: 0775
+    recurse: yes
+  with_items: "{{ wwwdata_directories }}"
+
+- name: Creating nginx service
+  template:
+    src: nginx.service.j2
+    dest: /etc/systemd/system/nginx.service
+
+- name: Restart daemon
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: crond
+
+- name: Start nginx service
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes

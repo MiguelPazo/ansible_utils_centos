@@ -1,0 +1,9 @@
+---
+
+supervisor_home: /etc/supervisor
+supervisor_config_path: /etc/supervisor/conf.d
+supervisor_log_path: /var/log/supervisor
+
+supervisor_config_prefix:
+supervisor_config_files:
+  - default.conf

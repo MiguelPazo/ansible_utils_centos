@@ -1,0 +1,29 @@
+---
+chrome_repository: /etc/yum.repos.d/google-chrome.repo
+yum_packages_base:
+  - libX11
+  - libXext
+  - libwayland-client
+  - http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-filesystem-1.1.97.0-1.el7.noarch.rpm
+  - http://mirror.centos.org/centos/7/os/x86_64/Packages/minizip-1.2.7-18.el7.x86_64.rpm
+  - http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-1.1.97.0-1.el7.x86_64.rpm
+#vulkan_file: vulkan-1.1.97.0-1.el7.x86_64.rpm
+#vulkan_filesystem_url: "http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-filesystem-1.1.97.0-1.el7.noarch.rpm"
+#minizip_url: "http://mirror.centos.org/centos/7/os/x86_64/Packages/minizip-1.2.7-18.el7.x86_64.rpm"
+#vulkan_url: "http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-1.1.97.0-1.el7.x86_64.rpm"
+yum_packages:
+  - unzip
+  - ipa-gothic-fonts
+  - libXScrnSaver
+  - xorg-x11-fonts-100dpi
+  - xorg-x11-fonts-75dpi
+  - xorg-x11-fonts-cyrillic
+  - xorg-x11-fonts-misc
+  - xorg-x11-fonts-Type1
+  - xorg-x11-utils
+  - google-chrome-stable
+  - chromedriver
+chromedriver_url: https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip
+chromedriver_path_download: ~/drivers/chromedriver.zip
+chromedriver_path: ~/drivers
+chromedriver_path_file: ~/drivers/chromedriver

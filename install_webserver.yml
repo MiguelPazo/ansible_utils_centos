@@ -1,0 +1,36 @@
+---
+- name: Install Webserver
+  hosts: servers
+  become: true
+  vars:
+    ansible_user: centos
+    ansible_ssh_private_key_file: keys/servers/centos.pem
+  roles:
+    - role: geerlingguy.epel
+    - role: nginx_custom
+    - role: nginx_config
+      vars:
+        - secure: true
+        - web_directory_owner: www-data
+        - with_default_conf: true
+    - role: sudoer_jenkins
+      vars:
+        - key_name: apps
+    - role: redis
+      vars:
+        - redis_password: 3KPEDzQgkm2z3cwV
+    - role: nodejs
+      vars:
+        - nodejs_npm_global_packages:
+            - pm2
+        - nodejs_links:
+            - pm2
+    - role: nginx_domains
+      vars:
+        - subdomains_folder: app1/dev/
+        - subdomains:
+            - auth-dev.app1-dev.com
+            - auth2-dev.app1-dev.com
+    - role: sudoers
+      vars:
+        - user: mpazo

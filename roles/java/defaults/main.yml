@@ -1,0 +1,10 @@
+---
+
+yum_packages:
+  - wget
+  - mlocate
+  - lsof
+
+installer_version: 11
+installer_java11: https://devops-tools-installers.s3.amazonaws.com/jdk-11.0.12_linux-x64_bin.rpm
+installer_java8: https://devops-tools-installers.s3.amazonaws.com/jdk-8u202-linux-x64.rpm

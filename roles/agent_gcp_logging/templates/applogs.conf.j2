@@ -1,0 +1,13 @@
+{% for log in logs_files %}
+<source>
+  @type tail
+  format none
+  path {{ log.file }}
+  pos_file {{ log.pos_file }}
+  read_from_head true
+  tag {{ log.tag }}
+</source>
+
+{% endfor %}
+
+

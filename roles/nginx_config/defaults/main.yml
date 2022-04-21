@@ -1,0 +1,7 @@
+---
+secure: true
+web_directory_owner: nginx
+with_default_conf: true
+yum_packages:
+  - gcc-c++
+  - fontconfig

@@ -1,0 +1,46 @@
+---
+- name: Ensure repo Chrome exists
+  stat: path="{{ chrome_repository }}"
+  register: repo_exists
+
+- name: Copy google-chrome.repo
+  template:
+    src: google-chrome.repo
+    dest: "{{ chrome_repository }}"
+  when: repo_exists.stat.exists == False
+
+- name: Install yum packages required for Chrome
+  yum:
+    name: "{{ yum_packages_base }}"
+    state: present
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Get Chrome version
+  shell: google-chrome --version
+  register: chrome_version
+
+- debug: msg="{{ chrome_version.stdout_lines }}"
+
+- name: Ensure a directory chromedriver_path exists
+  file:
+    path: "{{ chromedriver_path }}"
+    state: directory
+    mode: '0644'
+
+- name: Ensure chromedriver exists
+  stat: path="{{ chromedriver_path_file }}"
+  register: chromedriver_exists
+
+- name: Download ChromeDriver
+  get_url: url="{{ chromedriver_url }}" dest="{{ chromedriver_path_download }}"
+  when: chromedriver_exists.stat.exists == False
+
+- name: Uncompress ChromeDriver
+  unarchive:
+    src: "{{ chromedriver_path_download }}"
+    dest: "{{ chromedriver_path }}"
+  when: chromedriver_exists.stat.exists == False

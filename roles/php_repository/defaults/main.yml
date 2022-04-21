@@ -1,0 +1,13 @@
+---
+yum_packages:
+  - wget
+  - mlocate
+  - lsof
+  - gd
+  - gd-devel
+
+php_required_packages:
+  - ncurses-devel
+
+php_required_rpms:
+  - http://mirror.centos.org/centos/7/os/x86_64/Packages/libedit-devel-3.0-12.20121213cvs.el7.x86_64.rpm

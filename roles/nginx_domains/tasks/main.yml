@@ -1,0 +1,24 @@
+---
+
+- name: Shell temp
+  shell: rm -rf /etc/nginx/conf.d/*
+
+- name: Copy config file {{ subdomain }}.conf
+  template:
+    src: "{{subdomains_folder}}{{ item }}.conf"
+    dest: "/etc/nginx/conf.d/{{ item }}.conf"
+  with_items: "{{ subdomains }}"
+
+- name: Ensure nginx directory permissions
+  file:
+    path: /etc/nginx
+    state: directory
+    recurse: yes
+    mode: 0755
+    owner: nginx
+    group: nginx
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: restarted

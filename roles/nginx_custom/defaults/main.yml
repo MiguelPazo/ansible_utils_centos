@@ -1,0 +1,64 @@
+---
+server_name: WildFly/10
+yum_packages:
+  - make
+  - wget
+  - lsof
+  - mlocate
+  - gcc-c++
+  - perl
+  - perl-devel
+  - perl-ExtUtils-Embed
+  - libxslt
+  - libxslt-devel
+  - libxml2
+  - libxml2-devel
+  - gd
+  #  - gd-devel
+  #  - http://mirror.centos.org/centos/7/os/x86_64/Packages/gd-devel-2.0.35-26.el7.i686.rpm
+  - GeoIP
+  #  - GeoIP-devel
+  #  - http://mirror.centos.org/centos/7/os/x86_64/Packages/GeoIP-devel-1.5.0-11.el7.x86_64.rpm
+  - fontconfig-devel
+  - freetype-devel
+  - libX11-devel
+  - libXpm-devel
+  - libgd.so.2
+  - libjpeg-devel
+  - libpng-devel
+
+directories_delete:
+  - /usr/sbin/nginx
+  - /usr/sbin/nginx.old
+  - /usr/lib64/nginx
+  - /etc/nginx
+  - /usr/share/nginx
+
+installers:
+  - name: nginx-1.14.0.tar.gz
+    uncompress: nginx-1.14.0
+    url: https://nginx.org/download/nginx-1.14.0.tar.gz
+  - name: pcre-8.42.tar.gz
+    uncompress: pcre-8.42
+    url: https://ftp.pcre.org/pub/pcre/pcre-8.42.tar.gz
+  - name: openssl-1.1.0h.tar.gz
+    uncompress: openssl-1.1.0h
+    url: https://www.openssl.org/source/openssl-1.1.0h.tar.gz
+  - name: zlib-1.2.11.tar.gz
+    uncompress: zlib-1.2.11
+    url: https://zlib.net/zlib-1.2.11.tar.gz
+
+directories:
+  - /var/lib/nginx
+  - /etc/nginx/conf.d
+  - /var/www
+  - /var/cache/nginx
+
+nginx_directories:
+  - /var/lib/nginx
+  - /var/cache/nginx
+  - /etc/nginx
+  - /var/log/nginx
+
+wwwdata_directories:
+  - /var/www

@@ -1,0 +1,17 @@
+---
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Install Java 11
+  yum:
+    name: "{{ installer_java11 }}"
+    state: present
+  when: installer_version == 11
+
+- name: Install Java 8
+  yum:
+    name: "{{ installer_java8 }}"
+    state: present
+  when: installer_version == 8

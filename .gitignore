@@ -1,0 +1,7 @@
+/.idea
+*.log
+*.rdb
+*.retry
+/tmp
+*.pem
+*.ini

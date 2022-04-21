@@ -1,0 +1,9 @@
+---
+web_directory_owner: apache
+yum_packages:
+  - gcc-c++
+  - fontconfig
+
+subdomains_folder:
+subdomains:
+  - default.conf

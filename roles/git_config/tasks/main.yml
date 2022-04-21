@@ -1,0 +1,4 @@
+---
+- name: Config git aliases
+  shell: git config --global alias.{{ item.alias }} {{ item.command }}
+  with_items: "{{ git_aliases }}"

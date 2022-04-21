@@ -1,0 +1,62 @@
+---
+
+- name: Check if MongoDB is running
+  command: systemctl status mongod
+  ignore_errors: yes
+  changed_when: false
+  register: service_mongodb_status
+
+- debug: msg="{{ service_mongodb_status.stdout_lines }}"
+
+- name: Copying repository
+  template:
+    src: mongodb-org-4.0.repo
+    dest: /etc/yum.repos.d/mongodb-org-4.0.repo
+  when: service_mongodb_status.rc != 0
+
+- name: Installing MongoDB
+  yum:
+    name: mongodb-org
+    state: present
+  when: service_mongodb_status.rc != 0
+
+- name: Start MongoDB
+  service:
+    name: mongod
+    state: restarted
+    enabled: yes
+
+- name: Install pymongo
+  pip:
+    name: pymongo
+    executable: /usr/local/bin/pip3.7
+
+- name: Copying config no auth
+  template:
+    src: mongod_noauth.conf.j2
+    dest: /etc/mongod.conf
+
+- name: Start MongoDB
+  service:
+    name: mongod
+    state: restarted
+
+- name: Run create admin user
+  community.mongodb.mongodb_user:
+    database: admin
+    name: '{{ mongodb_user }}'
+    password: '{{ mongodb_password }}'
+    roles:
+      - db: admin
+        role: root
+    state: present
+
+- name: Copying config
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+
+- name: Start MongoDB
+  service:
+    name: mongod
+    state: restarted

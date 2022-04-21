@@ -1,0 +1,6 @@
+---
+nvm_path: /usr/local/nvm
+yum_packages:
+  - curl
+nodejs_npm_global_packages:
+nodejs_links:

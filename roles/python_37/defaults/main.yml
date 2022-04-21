@@ -1,0 +1,10 @@
+---
+yum_packages:
+  - gcc
+  - openssl-devel
+  - bzip2-devel
+  - libffi-devel
+
+python37_source: https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
+python37_donwload_path: /opt/Python-3.7.3.tgz
+python37_uncompress_path: /opt/Python-3.7.3

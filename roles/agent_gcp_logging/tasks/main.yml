@@ -1,0 +1,19 @@
+---
+- name: Intalling logging agent
+  shell: bash add-logging-agent-repo.sh --also-install
+
+- name: Copying logging config
+  template:
+    src: applogs.conf.j2
+    dest: /etc/google-fluentd/config.d/proxy_app.conf
+
+- name: Start logging agent
+  service:
+    name: google-fluentd
+    state: restarted
+
+- name: Enabled logging agent
+  service:
+    name: google-fluentd
+    enabled: yes
+

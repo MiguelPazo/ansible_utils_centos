@@ -1,0 +1,16 @@
+---
+- name: Install with php
+  become: true
+  shell: cd /opt & php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+
+- name: Compiling composer
+  become: true
+  shell: cd /opt & php composer-setup.php
+
+- name: Unlink composer setup file
+  become: true
+  shell: cd /opt & php -r "unlink('composer-setup.php');"
+
+- name: Copy to /usr/bin
+  become: true
+  shell: cd /opt & mv composer.phar /usr/bin/composer

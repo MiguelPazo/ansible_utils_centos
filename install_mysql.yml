@@ -1,0 +1,22 @@
+---
+- name: Install MySQL
+  hosts: servers
+  become: true
+  vars:
+    ansible_user: centos
+    ansible_ssh_private_key_file: keys/servers/centos.pem
+  roles:
+    - role: geerlingguy.epel
+    - role: geerlingguy.mysql
+      vars:
+        - mysql_root_username: root
+        - mysql_root_password: 3KPEDzQgkm2z3cwV
+        - mysql_databases:
+            - name: app1
+              encoding: utf8
+              collation: utf8_unicode_ci
+        - mysql_users:
+            - name: app
+              host: "%"
+              password: 3KPEDzQgkm2z3cwV
+              priv: "*.*:ALL"

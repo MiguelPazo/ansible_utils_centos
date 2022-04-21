@@ -1,0 +1,14 @@
+---
+
+- name: Copying repository
+  template:
+    src: MariaDB.repo
+    dest: /etc/yum.repos.d/MariaDB.repo
+
+- name: Importing gpg key MariaDB Client
+  shell: rpm --import https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+
+- name: Installing MariaDB Client
+  yum:
+    name: MariaDB-client
+    state: present

@@ -1,0 +1,27 @@
+---
+- name: Install Wordpress with apache
+  hosts: wordpress
+  become: true
+  vars:
+    ansible_user: centos
+    ansible_ssh_private_key_file: keys/servers/centos.pem
+  roles:
+    - role: geerlingguy.epel
+    - role: apache
+      vars:
+        - web_directory_owner: www-data
+        - subdomains_folder:
+        - subdomains:
+            - landing.demo.com
+    - role: geerlingguy.remi
+    - role: geerlingguy.php-versions
+      vars:
+        - php_version: '7.4'
+    - role: geerlingguy.php
+      vars:
+        - php_webserver_daemon: "httpd"
+        - php_enable_apc: false
+        - php_fpm_pool_user: apache
+        - php_fpm_pool_group: apache
+    - role: geerlingguy.php_mysql
+    - role: mariadb_client

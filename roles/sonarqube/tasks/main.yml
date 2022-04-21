@@ -1,0 +1,105 @@
+---
+#  https://www.vultr.com/docs/how-to-install-sonarqube-on-centos-7
+#  https://computingforgeeks.com/install-sonarqube-code-review-centos/
+#- https://computingforgeeks.com/how-to-install-postgresql-12-on-centos-7/
+
+- name: Check if Jenkins is running
+  command: systemctl status sonarqube1
+  ignore_errors: yes
+  changed_when: false
+  register: service_sonar_status
+
+- debug: msg="{{ service_sonar_status.stdout_lines }}"
+
+- name: Install yum base packages
+  yum:
+    name: "{{ yum_packages_base }}"
+    state: present
+
+- name: Add user sonar
+  user:
+    name: sonar
+    shell: /sbin/nologin
+    append: yes
+    state: present
+
+- name: Download repo file
+  get_url: url="{{ sonarqube_download_url }}" dest="{{ sonarqube_download_path }}"
+  when: service_sonar_status.rc != 0
+
+- name: Unzip binaries
+  unarchive:
+    src: "{{ sonarqube_download_path }}"
+    dest: /opt
+    copy: no
+  when: service_sonar_status.rc != 0
+
+- name: Move binaries to final path
+  shell: mv {{ sonarqube_unzip_path }} {{ sonarqube_path }}
+  when: service_sonar_status.rc != 0
+
+- name: Change owner sonarqube home
+  file:
+    path: "{{ sonarqube_path }}"
+    owner: sonar
+    group: sonar
+    recurse: yes
+
+- name: Creates directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items: "{{ sonar_directories }}"
+
+- name: Setting owner for sonar directories
+  file:
+    path: "{{ item }}"
+    owner: sonar
+    group: sonar
+    mode: 0664
+    recurse: yes
+  with_items: "{{ sonar_directories }}"
+
+- name: Copy config file sonar.properties
+  template:
+    src: sonar.properties.j2
+    dest: /etc/sonarqube/conf/sonar.properties
+  when: service_sonar_status.rc != 0
+
+- name: Copy config file sysctl.conf
+  template:
+    src: sysctl.conf
+    dest: /etc/sysctl.conf
+  when: service_sonar_status.rc != 0
+
+- name: Enabling sysctl.conf
+  shell: sysctl -p
+  when: service_sonar_status.rc != 0
+
+- name: Creating sonar service
+  template:
+    src: sonarqube.service
+    dest: /etc/systemd/system/sonarqube.service
+  when: service_sonar_status.rc != 0
+
+- name: Setting executable permissions
+  file:
+    path: "{{ item }}"
+    owner: sonar
+    group: sonar
+    mode: 0764
+  with_items: "{{ sonar_executable_files }}"
+
+- name: Restart daemon
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: crond
+  when: service_sonar_status.rc != 0
+
+- name: Start sonarqube
+  service:
+    name: sonarqube
+    state: started
+    enabled: yes
+

@@ -1,0 +1,5 @@
+---
+
+mongodb_user: admin
+mongodb_password: admin
+mongodb_binding: 0.0.0.0

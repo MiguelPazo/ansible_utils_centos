@@ -1,0 +1,86 @@
+---
+
+- name: Check if Jenkins is running
+  command: systemctl status jenkins
+  ignore_errors: yes
+  changed_when: false
+  register: service_jenkins_status
+
+- debug: msg="{{ service_jenkins_status.stdout_lines }}"
+
+- name: Install yum base packages
+  yum:
+    name: "{{ yum_packages_base }}"
+    state: present
+  when: service_jenkins_status.rc != 0
+
+- name: Add user jenkins
+  user:
+    name: jenkins
+    append: yes
+    state: present
+  when: service_jenkins_status.rc != 0
+
+- name: Creates directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items: "{{ jenkins_directories }}"
+  when: service_jenkins_status.rc != 0
+
+- name: Download repo file
+  get_url: url="{{ jenkins_repo_url }}" dest="{{ jenkins_repo_dest }}"
+  when: service_jenkins_status.rc != 0
+
+- name: Install rpm key
+  rpm_key:
+    state: present
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+  when: service_jenkins_status.rc != 0
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+  when: service_jenkins_status.rc != 0
+
+- name: Setting JENKINS_HOME in /etc/profile
+  lineinfile:
+    path: "/etc/profile"
+    line: export JENKINS_HOME={{jenkins_home}}
+    insertafter: EOF
+  when: service_jenkins_status.rc != 0
+
+- name: Start jenkins
+  service:
+    name: jenkins
+    state: started
+    enabled: yes
+
+- name: Catch initial password
+  shell: cat {{ jenkins_default_password_path }}
+  register: jenkins_default_password_value
+
+- name: Download jenkins-cli
+  shell: cd /opt && curl -u admin:{{ jenkins_default_password_value.stdout_lines[0] }} {{ jenkins_base_url }}/jnlpJars/jenkins-cli.jar -o jenkins-cli.jar
+
+- name: Install jenkins plugins
+  shell: cd /opt && java -jar jenkins-cli.jar -auth admin:{{ jenkins_default_password_value.stdout_lines[0] }} -s {{ jenkins_base_url }} install-plugin {{ item }}
+  with_items: "{{ jenkins_plugins }}"
+  notify: Restart Jenkins
+
+- name: Delete initial password
+  file:
+    path: "{{ jenkins_default_password_path }}"
+    state: absent
+
+- name: Start jenkins
+  service:
+    name: jenkins
+    state: restarted
+    enabled: yes
+
+- debug: msg="Initial Password = {{ jenkins_default_password_value.stdout_lines[0] }}"
+
+# config memory
+# -Xms1024m -Xmx1024m -Xss3072k -XX:MaxPermSize=3072m

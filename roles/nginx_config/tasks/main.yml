@@ -1,0 +1,105 @@
+---
+
+#- name: Insert Index Page
+#  template:
+#    src: index.html
+#    dest: /usr/share/nginx/html/index.html
+
+- name: Copy config file nginx.conf
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+  when: secure == true
+
+- name: Copy config file insecure nginx.conf
+  template:
+    src: nginx_insecure.conf
+    dest: /etc/nginx/nginx.conf
+  when: secure != true
+
+- name: Ensure nginx directory permissions
+  file:
+    path: /etc/nginx
+    state: directory
+    recurse: yes
+    mode: 0644
+    owner: nginx
+    group: nginx
+
+- name: Ensure nginx log permissions
+  file:
+    path: /var/log/nginx
+    state: directory
+    recurse: yes
+    mode: 0644
+    owner: nginx
+    group: nginx
+
+- name: Ensure nginx log permissions
+  file:
+    path: /var/lib/nginx
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: nginx
+    group: nginx
+
+- name: Create www directory
+  file:
+    path: /var/www
+    state: directory
+    recurse: yes
+    mode: 0775
+    owner: "{{ web_directory_owner }}"
+    group: "{{ web_directory_owner }}"
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Setting permissions for SELinux
+  shell: /usr/sbin/setsebool httpd_can_network_connect true -P
+  become: true
+
+#- name: Setting permissive for SELinux
+#  shell: setenforce permissive
+#  become: true
+
+- name: Setting permissions for SELinux with Enforcing
+  shell: chcon -Rt httpd_sys_content_t /var/www
+  become: true
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: Install Development Tools
+  shell: yum groupinstall 'Development Tools' -y
+
+- name: Copy config file default.conf
+  template:
+    src: "default.conf"
+    dest: "/etc/nginx/conf.d/default.conf"
+  when: with_default_conf == true
+
+- name: Deleting config file default.conf
+  file:
+    path: "/etc/nginx/conf.d/default.conf"
+    state: absent
+  when: with_default_conf != true
+
+- name: Ensure nginx directory permissions
+  file:
+    path: /etc/nginx
+    state: directory
+    recurse: yes
+    mode: 0755
+    owner: nginx
+    group: nginx
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: restarted

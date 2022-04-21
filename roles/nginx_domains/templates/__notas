@@ -1,0 +1,4 @@
+cd /etc/nginx/conf.d/
+chown nginx:nginx /etc/nginx/conf.d/*
+chmod 755 /etc/nginx/conf.d/*
+systemctl restart nginx

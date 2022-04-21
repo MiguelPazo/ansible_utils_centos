@@ -1,0 +1,36 @@
+---
+- name: Install SonarQube
+  hosts: sonarqube
+  become: true
+  vars:
+    ansible_user: centos
+    ansible_ssh_private_key_file: keys/servers/centos.pem
+  #    ansible_python_interpreter: /usr/local/bin/python3.7
+  roles:
+    - role: geerlingguy.epel
+    - role: geerlingguy.nginx
+    - role: nginx_custom
+    - role: nginx_config
+      vars:
+        - secure: true
+        - web_directory_owner: nginx
+        - with_default_conf: false
+    - role: nginx_domains
+      vars:
+        - subdomains_folder: sonarqube/
+        - subdomains:
+            - sonar.demo.com
+    - role: java
+    - role: update_certificates
+    - role: postgresql
+      vars:
+        - postgresql_password: 3KPEDzQgkm2z3cwV
+        - db_user: sonar
+        - db_password: 3KPEDzQgkm2z3cwV
+        - db_name: sonarqube
+    - role: sonarqube
+      vars:
+        - db_user: sonar
+        - db_password: 3KPEDzQgkm2z3cwV
+        - db_name: sonarqube
+

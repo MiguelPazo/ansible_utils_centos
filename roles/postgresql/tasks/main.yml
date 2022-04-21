@@ -1,0 +1,124 @@
+---
+# su - postgres
+# psql -c "alter user postgres with password 'StrongPassword'"
+# psql -U <dbuser> -h <serverip> -p 5432 <dbname>
+
+- name: Check if PostgreSQL is running
+  command: systemctl status postgresql-12
+  ignore_errors: yes
+  changed_when: false
+  register: service_postgresql_status
+
+- debug: msg="{{ service_postgresql_status.stdout_lines }}"
+
+- name: Install yum base packages
+  yum:
+    name: "{{ yum_packages_base }}"
+    state: present
+    validate_certs: False
+  when: service_postgresql_status.rc != 0
+
+- name: Setting PostgreSQL 12
+  shell: yum-config-manager --enable pgdg12
+
+- name: Install yum packages
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+  when: service_postgresql_status.rc != 0
+
+- name: Copy config file pg_hba.conf
+  template:
+    src: pg_hba.conf
+    dest: /var/lib/pgsql/12/data/pg_hba.conf
+  when: service_postgresql_status.rc != 0
+
+- name: Setting owner for postgres directory
+  file:
+    path: /var/lib/pgsql
+    owner: postgres
+    group: postgres
+    mode: 0700
+    recurse: yes
+
+- name: Cleaning data directory only for first install
+  shell: rm -rf /var/lib/pgsql/12/data/*
+  when: service_postgresql_status.rc != 0
+
+- name: Starting PostgreSQL 12
+  shell: /usr/pgsql-12/bin/postgresql-12-setup initdb
+  when: service_postgresql_status.rc != 0
+
+- name: Start postgresql-12
+  service:
+    name: postgresql-12
+    state: started
+    enabled: yes
+
+- name: Update postgres password
+  command: "psql -c \"alter user postgres with password '{{ postgresql_password }}'\""
+  become: yes
+  become_user: postgres
+  register: sql_response_variable
+
+- debug: msg="{{ sql_response_variable.stdout_lines }}"
+
+#####
+##### De aqui en adelante se debe usar python3.7 y pip3.7
+#####
+- name: Make sure psycopg2 is installed
+  pip:
+    name: psycopg2-binary
+    state: present
+    executable: /usr/local/bin/pip3.7
+
+- name: Create db user
+  postgresql_user:
+    state: present
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+  become: yes
+  become_user: postgres
+  when: service_postgresql_status.rc != 0
+
+- name: Create app database
+  postgresql_db:
+    state: present
+    name: "{{ db_name }}"
+    owner: "{{ db_user }}"
+  become: yes
+  become_user: postgres
+  when: service_postgresql_status.rc != 0
+
+- name: Grant db user access to app db
+  postgresql_privs:
+    type: database
+    database: "{{ db_name }}"
+    roles: "{{ db_user }}"
+    grant_option: no
+    privs: all
+  become: yes
+  become_user: postgres
+  when: service_postgresql_status.rc != 0
+
+- name: Allow md5 connection for the db user
+  postgresql_pg_hba:
+    dest: /var/lib/pgsql/12/data/pg_hba.conf
+    contype: host
+    databases: all
+    method: md5
+    users: "{{ db_user }}"
+    create: true
+  become: yes
+  become_user: postgres
+  notify: Restart PostgreSQL 12
+  when: service_postgresql_status.rc != 0
+
+#- name: "Load SQL script into a variable"
+#  set_fact:
+#    migration_sql: "{{ lookup('file', 'conf/migration.sql') }}"
+#
+#- name: "Execute script from variable"
+#  command: "psql {{ db_name }} -c {{ migration_sql }}"
+#  become_user: postgres
+#  register: sql_response_variable

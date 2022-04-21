@@ -1,0 +1,6 @@
+---
+aws_region: ca-central-1
+logs_files:
+  - file: '/var/log/messages'
+    pos_file: '/var/lib/google-fluentd/pos/messages.pos'
+    tag: 'messages'

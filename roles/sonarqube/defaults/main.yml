@@ -1,0 +1,25 @@
+---
+sonarqube_download_url: https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.0.1.46107.zip
+sonarqube_download_path: /opt/sonarqube-9.0.1.46107.zip
+sonarqube_unzip_path: /opt/sonarqube-9.0.1.46107
+sonarqube_path: /etc/sonarqube
+
+yum_packages_base:
+  - wget
+  - mlocate
+  - zip
+  - unzip
+
+sonar_directories:
+  - /var/log/sonarqube
+  - /etc/sonarqube/elastic/data
+  - /etc/sonarqube/elastic/temp
+
+sonar_executable_files:
+  - /etc/sonarqube/bin/linux-x86-64/sonar.sh
+  - /etc/sonarqube/bin/linux-x86-64/wrapper
+  - /etc/sonarqube/elasticsearch/bin/elasticsearch
+
+db_user: sonar
+db_password: sonar
+db_name: sonarqube

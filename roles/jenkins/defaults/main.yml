@@ -1,0 +1,52 @@
+---
+jenkins_home: /var/lib/jenkins
+jenkins_base_url: http://127.0.0.1:8080
+jenkins_install_phase: 1
+
+jenkins_default_password_path: /var/lib/jenkins/secrets/initialAdminPassword
+
+yum_packages_base:
+  - mlocate
+  - wget
+
+jenkins_directories:
+  - /var/log/jenkins
+
+yum_packages:
+  - jenkins
+
+jenkins_repo_url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+jenkins_repo_dest: /etc/yum.repos.d/jenkins.repo
+
+jenkins_plugins:
+  - blueocean
+  - role-strategy
+  - gitlab-plugin
+  - gitlab-oauth
+  - gitlab-api
+  - config-file-provider
+  - content-replace
+  - build-user-vars-plugin
+  - generic-webhook-trigger
+  - nodejs
+  - slack
+  - ssh-agent
+  - sonar
+  - ant
+  - build-timeout
+  - command-launcher
+  - email-ext
+  - gradle
+  - jaxb
+  - ldap
+  - jdk-tool
+  - antisamy-markup-formatter
+  - pam-auth
+  - workflow-aggregator
+  - pipeline-github-lib
+  - saml
+  - ssh-slaves
+  - timestamper
+  - ws-cleanup
+
+

@@ -1,0 +1,132 @@
+---
+
+- name: Check if Tomcat is running
+  command: systemctl status tomcat
+  ignore_errors: yes
+  changed_when: false
+  register: service_tomcat_status
+
+- debug: msg="{{ service_tomcat_status.stdout_lines }}"
+
+- name: Download binaeries
+  get_url: url="{{ tomcat_download_uri }}" dest="{{ tomcat_download_path }}"
+  when: service_tomcat_status.rc != 0
+
+- name: Delete old
+  file:
+    state: absent
+    path: "{{ tomcat_install_path }}"
+  when: service_tomcat_status.rc != 0
+
+- name: Uncompress binaries
+  shell: cd /opt && tar xvfz {{ tomcat_download_path }}
+  when: service_tomcat_status.rc != 0
+
+- name: Move binaries
+  shell: mv {{ tomcat_uncompress_path }} {{ tomcat_install_path }}
+  when: service_tomcat_status.rc != 0
+
+- name: Delete downloaded binaries
+  file:
+    state: absent
+    path: "{{ tomcat_download_path }}"
+
+- name: Add user tomcat
+  user:
+    name: tomcat
+    shell: /sbin/nologin
+    append: yes
+    state: present
+
+- name: Setting executable permission to bin directory
+  shell: chmod +x {{ tomcat_install_path }}/bin/*.sh
+
+- name: Backup of tomcat ROOT
+  shell: cp -rp {{ tomcat_install_path }}/webapps/ROOT {{ tomcat_install_path }}/webapps/ROOT.BK
+  when: service_tomcat_status.rc != 0
+
+- name: Deleting images on tomcat ROOT
+  shell: |
+    cd {{ tomcat_install_path }}/webapps/ROOT
+    rm -rf *.png
+    rm -rf *.gif
+    rm -rf *.svg
+    rm -rf *.ico
+    touch error.html
+    truncate -s 0 index.jsp
+  when: service_tomcat_status.rc != 0
+
+- name: Config ROOT/WEB-INF/web.xml
+  template:
+    src: web.xml.j2
+    dest: "{{ tomcat_install_path }}/webapps/ROOT/WEB-INF/web.xml"
+  when: service_tomcat_status.rc != 0
+
+- name: Creates logs directory
+  file:
+    path: "{{ tomcat_log_path }}"
+    state: directory
+    owner: tomcat
+    group: tomcat
+  when: service_tomcat_status.rc != 0
+
+- name: Copyinh setenv.sh
+  template:
+    src: setenv.sh.j2
+    dest: "{{ tomcat_install_path }}/bin/setenv.sh"
+  when: service_tomcat_status.rc != 0
+
+- name: Copyinh logging.properties
+  template:
+    src: logging.properties.j2
+    dest: "{{ tomcat_install_path }}/conf/logging.properties"
+  when: service_tomcat_status.rc != 0
+
+- name: Copyinh servers.xml
+  template:
+    src: servers.xml.j2
+    dest: "{{ tomcat_install_path }}/conf/servers.xml"
+  when: service_tomcat_status.rc != 0
+
+- name: Copyinh log rotate config
+  template:
+    src: log_rotate.j2
+    dest: /etc/logrotate.d/tomcat
+  when: service_tomcat_status.rc != 0
+
+- name: Setting owner for tomcat directory
+  file:
+    path: "{{ tomcat_install_path }}"
+    owner: tomcat
+    group: tomcat
+    mode: 0775
+    recurse: yes
+
+- name: Creating tomcat service
+  template:
+    src: tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+
+- name: Restart daemon
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: crond
+
+- name: Start tomcat service
+  systemd:
+    name: tomcat
+    state: restarted
+    enabled: yes
+
+- name: Disable SELinux
+  selinux: state=disabled
+
+- name: Reboot host and wait for it to restart
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami

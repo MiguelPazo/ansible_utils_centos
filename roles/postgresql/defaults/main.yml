@@ -1,0 +1,17 @@
+---
+yum_packages_base:
+  - wget
+  - mlocate
+  - lsof
+  - yum-utils
+  - https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+yum_packages:
+  - postgresql12
+  - postgresql12-servers
+
+postgresql_password: admin
+
+db_user: app1
+db_password: app1
+db_name: app1
